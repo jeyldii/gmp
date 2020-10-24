@@ -48,6 +48,8 @@ import (
 	"strings"
 	"unicode"
 	"unsafe"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Some definited Ints for internal use only
@@ -947,12 +949,15 @@ func (z *Int) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (z *Int) UnmarshalJSON(x []byte) error {
 	// TODO(gri): get rid of the []byte/string conversions
-	vx := string(x)
-	_, ok := z.SetString(vx, 0)
+	var s string
+	if err := jsoniter.Unmarshal(x, &s); err != nil {
+		return err
+	}
+	_, ok := z.SetString(s, 0)
 	if !ok {
-		_, ok = z.SetString(strings.TrimPrefix(vx, "0x"), 0)
+		_, ok = z.SetString(strings.TrimPrefix(s, "0x"), 0)
 		if !ok {
-			return fmt.Errorf("math/big: cannot unmarshal %s into a *gmp.Int", vx)
+			return fmt.Errorf("math/big: cannot unmarshal %s into a *gmp.Int", s)
 		}
 	}
 	return nil
