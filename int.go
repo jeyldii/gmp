@@ -947,9 +947,13 @@ func (z *Int) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (z *Int) UnmarshalJSON(x []byte) error {
 	// TODO(gri): get rid of the []byte/string conversions
-	_, ok := z.SetString(string(x), 0)
+	vx := string(x)
+	_, ok := z.SetString(vx, 0)
 	if !ok {
-		return fmt.Errorf("math/big: cannot unmarshal %s into a *gmp.Int", x)
+		_, ok = z.SetString(strings.TrimPrefix(vx, "0x"), 0)
+		if !ok {
+			return fmt.Errorf("math/big: cannot unmarshal %s into a *gmp.Int", vx)
+		}
 	}
 	return nil
 }
